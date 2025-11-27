@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Blood App</title>
+  <style>
+    body { font-family: Arial; background: #ffebee; text-align: center; padding: 50px; }
+    .box { width: 400px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.2); }
+    input, select, button { width: 100%; padding: 12px; margin: 10px 0; font-size: 16px; }
+    button { background: #d32f2f; color: white; border: none; cursor: pointer; }
+    #msg { margin-top: 15px; font-weight: bold; color: red; }
+  </style>
+</head>
+<body>
+<div class="box">
+  <h1>Smart Blood Donation</h1>
+  <input id="u" placeholder="Username"><br>
+  <input id="p" type="password" placeholder="Password"><br>
+  <select id="r">
+    <option value="donor">Donor</option>
+    <option value="requester">Requester</option>
+  </select><br>
+  <select id="b">
+    <option value="">Blood Type (Donors only)</option>
+    <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+    <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+  </select><br>
+  <button onclick="reg()">REGISTER</button>
+  <button onclick="log()">LOGIN</button>
+  <div id="msg"></div>
+</div>
+
+<script>
+async function reg() {
+  const res = await fetch('/api/register', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      username: u.value,
+      password: p.value,
+      role: r.value,
+      bloodType: r.value === 'donor' ? b.value : null
+    })
+  });
+  const data = await res.json();
+  msg.innerText = data.message;
+}
+
+async function log() {
+  const res = await fetch('/api/login', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({username: u.value, password: p.value})
+  });
+  const data = await res.json();
+  if (data.success) {
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('role', data.role);
+    alert("Login Success! Open dashboard.html");
+  } else {
+    msg.innerText = data.message;
+  }
+}
+</script>
+</body>
+</html>

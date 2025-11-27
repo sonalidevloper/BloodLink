@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Dashboard – YOU ARE LOGGED IN!</h1>
+<script>
+if (!localStorage.token) location.href = '/';
+else alert("Login 100% working!");
+</script>
+    <button onclick="localStorage.clear(); location.href='/'">Logout</button>
+
+    <div id="donor" style="display:none; margin-top:20px;">
+      <h2>Donor Panel</h2>
+      <p>Available: <input type="checkbox" id="available" checked></p>
+      <button onclick="updateLocation()">Update My Location</button>
+      <button onclick="saveDonor()">Save Status</button>
+      <h3>Emergency Alerts</h3>
+      <div id="alerts"></div>
+      <h3>Active Requests</h3>
+      <ul id="requests"></ul>
+    </div>
+
+    <div id="requester" style="display:none; margin-top:20px;">
+      <h2>Request Blood</h2>
+      <select id="reqBlood"><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select>
+      <select id="urgency"><option>High</option><option>Medium</option><option>Low</option></select>
+      <button onclick="updateLocation(true)">Get My Location</button>
+      <button onclick="sendRequest()">Send Request</button>
+      <h3>Your Requests</h3>
+      <ul id="myreq"></ul>
+    </div>
+
+    <p id="msg"></p>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
