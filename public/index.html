@@ -1,65 +1,973 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Blood App</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BloodLink – Save Lives, Instantly</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body { font-family: Arial; background: #ffebee; text-align: center; padding: 50px; }
-    .box { width: 400px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.2); }
-    input, select, button { width: 100%; padding: 12px; margin: 10px 0; font-size: 16px; }
-    button { background: #d32f2f; color: white; border: none; cursor: pointer; }
-    #msg { margin-top: 15px; font-weight: bold; color: red; }
+    :root {
+      --red: #e81c1c;
+      --red-dark: #a80000;
+      --red-glow: rgba(232, 28, 28, 0.35);
+      --bg: #0a0a0b;
+      --bg2: #111114;
+      --bg3: #18181d;
+      --surface: #1e1e25;
+      --surface2: #252530;
+      --border: rgba(255,255,255,0.07);
+      --text: #f0f0f4;
+      --text-muted: #7a7a8c;
+      --text-dim: #4a4a5a;
+      --white: #ffffff;
+      --success: #22c55e;
+      --warning: #f59e0b;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Animated background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: 
+        radial-gradient(ellipse 60% 40% at 20% 20%, rgba(232,28,28,0.08) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 60% at 80% 80%, rgba(168,0,0,0.06) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Grid overlay */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: 
+        linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Floating particles */
+    .particles { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .particle {
+      position: absolute;
+      width: 3px; height: 3px;
+      background: var(--red);
+      border-radius: 50%;
+      opacity: 0;
+      animation: floatUp var(--dur, 8s) var(--delay, 0s) infinite linear;
+    }
+    @keyframes floatUp {
+      0% { transform: translateY(100vh) scale(0); opacity: 0; }
+      10% { opacity: 0.6; }
+      90% { opacity: 0.3; }
+      100% { transform: translateY(-100px) scale(1.5); opacity: 0; }
+    }
+
+    /* ===== NAV ===== */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      padding: 20px 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      backdrop-filter: blur(20px);
+      background: rgba(10,10,11,0.7);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+    }
+
+    .logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800; font-size: 22px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: var(--red);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 0 20px var(--red-glow);
+      animation: pulse-logo 2s infinite;
+    }
+    @keyframes pulse-logo {
+      0%, 100% { box-shadow: 0 0 20px var(--red-glow); }
+      50% { box-shadow: 0 0 35px rgba(232,28,28,0.6); }
+    }
+
+    .nav-links { display: flex; gap: 36px; align-items: center; }
+    .nav-links a {
+      color: var(--text-muted); text-decoration: none;
+      font-size: 14px; font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 11px 24px;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px; font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      text-decoration: none;
+    }
+    .btn-primary {
+      background: var(--red);
+      color: white;
+      box-shadow: 0 0 0 0 var(--red-glow);
+    }
+    .btn-primary:hover {
+      background: #ff2424;
+      box-shadow: 0 4px 20px var(--red-glow);
+      transform: translateY(-1px);
+    }
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover {
+      color: var(--text);
+      border-color: rgba(255,255,255,0.2);
+      background: var(--surface);
+    }
+
+    /* ===== HERO ===== */
+    .hero {
+      position: relative; z-index: 1;
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+      padding: 120px 40px 80px;
+    }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 7px 16px;
+      background: rgba(232,28,28,0.1);
+      border: 1px solid rgba(232,28,28,0.3);
+      border-radius: 100px;
+      font-size: 12px; font-weight: 500;
+      color: #ff6b6b;
+      margin-bottom: 32px;
+      animation: fadeSlideDown 0.6s ease both;
+    }
+    .badge-dot {
+      width: 6px; height: 6px;
+      background: var(--red);
+      border-radius: 50%;
+      animation: blink 1.5s infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    .hero h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(52px, 8vw, 96px);
+      font-weight: 800;
+      line-height: 0.95;
+      letter-spacing: -2px;
+      max-width: 900px;
+      margin-bottom: 28px;
+      animation: fadeSlideDown 0.6s 0.1s ease both;
+    }
+
+    .hero h1 .highlight {
+      color: var(--red);
+      position: relative;
+      display: inline-block;
+    }
+    .hero h1 .highlight::after {
+      content: '';
+      position: absolute;
+      bottom: -4px; left: 0; right: 0;
+      height: 3px;
+      background: var(--red);
+      border-radius: 2px;
+      animation: lineGrow 0.8s 0.7s ease both;
+      transform-origin: left;
+    }
+    @keyframes lineGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+    .hero p {
+      font-size: 18px; line-height: 1.7;
+      color: var(--text-muted);
+      max-width: 560px;
+      margin-bottom: 48px;
+      animation: fadeSlideDown 0.6s 0.2s ease both;
+    }
+
+    .hero-cta {
+      display: flex; gap: 16px; flex-wrap: wrap; justify-content: center;
+      animation: fadeSlideDown 0.6s 0.3s ease both;
+    }
+
+    .btn-large { padding: 16px 36px; font-size: 16px; border-radius: 12px; }
+
+    /* Stats bar */
+    .hero-stats {
+      display: flex; gap: 60px;
+      margin-top: 80px;
+      padding-top: 60px;
+      border-top: 1px solid var(--border);
+      animation: fadeSlideDown 0.6s 0.4s ease both;
+    }
+    .stat-item { text-align: center; }
+    .stat-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 36px; font-weight: 800;
+      color: var(--red);
+      display: block;
+    }
+    .stat-label { font-size: 13px; color: var(--text-dim); margin-top: 4px; }
+
+    @keyframes fadeSlideDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Scroll indicator */
+    .scroll-hint {
+      position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
+      color: var(--text-dim); font-size: 12px;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      animation: bounce 2s infinite;
+    }
+    @keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(8px)} }
+
+    /* ===== AUTH MODAL ===== */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(12px);
+      z-index: 1000;
+      display: none;
+      align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.active { display: flex; }
+
+    .modal {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      width: 100%; max-width: 460px;
+      padding: 0;
+      overflow: hidden;
+      animation: modalIn 0.3s ease;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px var(--border);
+    }
+    @keyframes modalIn { from { opacity:0; transform:scale(0.95) translateY(10px); } to { opacity:1; transform:scale(1) translateY(0); } }
+
+    .modal-header {
+      padding: 32px 36px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-header h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 26px; font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .modal-header p { color: var(--text-muted); font-size: 14px; }
+
+    .modal-body { padding: 28px 36px 36px; }
+
+    /* Tab switcher */
+    .auth-tabs {
+      display: flex;
+      background: var(--bg3);
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 28px;
+    }
+    .auth-tab {
+      flex: 1; padding: 10px;
+      text-align: center;
+      font-size: 14px; font-weight: 500;
+      cursor: pointer;
+      border-radius: 7px;
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+    .auth-tab.active {
+      background: var(--surface2);
+      color: var(--text);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .form-group { margin-bottom: 18px; }
+    .form-group label {
+      display: block;
+      font-size: 12px; font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 13px 16px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      transition: all 0.2s;
+      outline: none;
+      appearance: none;
+    }
+    .form-control:focus {
+      border-color: rgba(232,28,28,0.5);
+      box-shadow: 0 0 0 3px rgba(232,28,28,0.1);
+    }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    .role-selector {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 10px; margin-bottom: 18px;
+    }
+    .role-option {
+      padding: 14px;
+      background: var(--bg3);
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .role-option input { display: none; }
+    .role-option:has(input:checked) {
+      border-color: var(--red);
+      background: rgba(232,28,28,0.08);
+    }
+    .role-icon { font-size: 24px; margin-bottom: 6px; }
+    .role-name { font-size: 13px; font-weight: 500; }
+    .role-desc { font-size: 11px; color: var(--text-dim); margin-top: 3px; }
+
+    .blood-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    .blood-btn {
+      padding: 10px 6px;
+      background: var(--bg3);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-muted);
+      font-family: 'Syne', sans-serif;
+      font-size: 13px; font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .blood-btn:hover, .blood-btn.selected {
+      border-color: var(--red);
+      color: var(--red);
+      background: rgba(232,28,28,0.08);
+    }
+
+    .form-divider {
+      display: flex; align-items: center; gap: 12px;
+      margin: 20px 0;
+      color: var(--text-dim); font-size: 12px;
+    }
+    .form-divider::before, .form-divider::after {
+      content: ''; flex: 1;
+      height: 1px; background: var(--border);
+    }
+
+    .btn-full { width: 100%; justify-content: center; padding: 14px; font-size: 15px; border-radius: 10px; }
+
+    .modal-close {
+      position: absolute; top: 20px; right: 20px;
+      width: 36px; height: 36px;
+      background: var(--surface); border-radius: 8px;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      cursor: pointer; font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    .modal-close:hover { color: var(--text); background: var(--surface2); }
+
+    .msg-box {
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .msg-box.success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: #4ade80; display: block; }
+    .msg-box.error { background: rgba(232,28,28,0.1); border: 1px solid rgba(232,28,28,0.3); color: #f87171; display: block; }
+
+    /* ===== FEATURES SECTION ===== */
+    .section {
+      position: relative; z-index: 1;
+      padding: 100px 60px;
+    }
+    .section-label {
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(36px, 5vw, 54px);
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 20px;
+    }
+    .section-sub {
+      color: var(--text-muted);
+      font-size: 17px; line-height: 1.7;
+      max-width: 560px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-top: 60px;
+    }
+
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      transition: all 0.3s;
+      cursor: default;
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--red), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(232,28,28,0.3);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+    .feature-card:hover::before { opacity: 1; }
+
+    .feature-icon {
+      width: 52px; height: 52px;
+      background: rgba(232,28,28,0.1);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
+    .feature-card h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px; font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .feature-card p { color: var(--text-muted); font-size: 14px; line-height: 1.7; }
+
+    /* ===== HOW IT WORKS ===== */
+    .steps-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+      margin-top: 60px;
+      position: relative;
+    }
+    .steps-grid::before {
+      content: '';
+      position: absolute;
+      top: 32px; left: 12%; right: 12%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--red), var(--red), transparent);
+    }
+
+    .step-item { text-align: center; padding: 0 20px; position: relative; z-index: 1; }
+    .step-num {
+      width: 64px; height: 64px;
+      background: var(--bg);
+      border: 2px solid var(--red);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-size: 22px; font-weight: 800;
+      color: var(--red);
+      margin: 0 auto 20px;
+      position: relative;
+    }
+    .step-num::before {
+      content: '';
+      position: absolute; inset: -8px;
+      border-radius: 50%;
+      background: rgba(232,28,28,0.08);
+    }
+    .step-item h4 { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 10px; }
+    .step-item p { color: var(--text-muted); font-size: 13px; line-height: 1.6; }
+
+    /* ===== FOOTER ===== */
+    footer {
+      position: relative; z-index: 1;
+      padding: 48px 60px;
+      border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    footer p { color: var(--text-dim); font-size: 13px; }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a { color: var(--text-dim); text-decoration: none; font-size: 13px; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--text-muted); }
+
+    /* Loading spinner */
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      nav { padding: 16px 24px; }
+      .nav-links { display: none; }
+      .section { padding: 60px 24px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .steps-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+      .steps-grid::before { display: none; }
+      footer { flex-direction: column; gap: 16px; text-align: center; }
+    }
   </style>
 </head>
 <body>
-<div class="box">
-  <h1>Smart Blood Donation</h1>
-  <input id="u" placeholder="Username"><br>
-  <input id="p" type="password" placeholder="Password"><br>
-  <select id="r">
-    <option value="donor">Donor</option>
-    <option value="requester">Requester</option>
-  </select><br>
-  <select id="b">
-    <option value="">Blood Type (Donors only)</option>
-    <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
-    <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
-  </select><br>
-  <button onclick="reg()">REGISTER</button>
-  <button onclick="log()">LOGIN</button>
-  <div id="msg"></div>
-</div>
 
-<script>
-async function reg() {
-  const res = await fetch('/api/register', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({
-      username: u.value,
-      password: p.value,
-      role: r.value,
-      bloodType: r.value === 'donor' ? b.value : null
-    })
-  });
-  const data = await res.json();
-  msg.innerText = data.message;
-}
+  <!-- Floating particles -->
+  <div class="particles" id="particles"></div>
 
-async function log() {
-  const res = await fetch('/api/login', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({username: u.value, password: p.value})
-  });
-  const data = await res.json();
-  if (data.success) {
-    localStorage.setItem('token', data.token);
-    localStorage.setItem('role', data.role);
-    alert("Login Success! Open dashboard.html");
-  } else {
-    msg.innerText = data.message;
-  }
-}
-</script>
+  <!-- Navigation -->
+  <nav>
+    <div class="logo">
+      <div class="logo-icon">🩸</div>
+      BloodLink
+    </div>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#how">How It Works</a>
+      <a href="#about">About</a>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-ghost" onclick="openAuth('login')">Sign In</button>
+      <button class="btn btn-primary" onclick="openAuth('register')">Get Started</button>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-badge">
+      <div class="badge-dot"></div>
+      Real-time Blood Donation Network
+    </div>
+    <h1>Save Lives with<br><span class="highlight">Smart Matching</span></h1>
+    <p>Connect donors, patients, and hospitals instantly. Our AI-powered platform ensures the right blood reaches the right person — in minutes, not hours.</p>
+    <div class="hero-cta">
+      <button class="btn btn-primary btn-large" onclick="openAuth('register')">
+        <i class="fas fa-heart"></i> Become a Donor
+      </button>
+      <button class="btn btn-ghost btn-large" onclick="openAuth('login')">
+        Request Blood <i class="fas fa-arrow-right"></i>
+      </button>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-item">
+        <span class="stat-num" data-target="12400">0</span>
+        <div class="stat-label">Lives Saved</div>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num" data-target="8200">0</span>
+        <div class="stat-label">Active Donors</div>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num" data-target="340">0</span>
+        <div class="stat-label">Partner Hospitals</div>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num" data-suffix="min">4</span>
+        <div class="stat-label">Avg. Match Time</div>
+      </div>
+    </div>
+    <div class="scroll-hint">
+      <span>Scroll to explore</span>
+      <i class="fas fa-chevron-down"></i>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="section" id="features">
+    <div class="section-label">Why BloodLink</div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:20px">
+      <div>
+        <div class="section-title">Built for<br>Emergencies</div>
+        <div class="section-sub">Every second counts. Our platform is designed from the ground up to handle critical situations with speed and precision.</div>
+      </div>
+      <button class="btn btn-primary" onclick="openAuth('register')">Join Now <i class="fas fa-arrow-right"></i></button>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Real-time Matching</h3>
+        <p>AI-powered compatibility engine instantly matches donors based on blood type, location, and availability — within seconds.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📍</div>
+        <h3>GPS Proximity Search</h3>
+        <p>Location-based donor discovery ensures the closest compatible donor is found first, dramatically cutting response times.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔔</div>
+        <h3>Instant Notifications</h3>
+        <p>Donors receive real-time push alerts for urgent requests matching their blood type in their vicinity.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🏥</div>
+        <h3>Hospital Integration</h3>
+        <p>Direct connectivity with blood banks and hospitals for live inventory updates and coordinated emergency response.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Donation Analytics</h3>
+        <p>Track your donation history, health metrics, and impact. Know when you're eligible to donate again.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🛡️</div>
+        <h3>Verified & Secure</h3>
+        <p>All donors are verified. All data encrypted. HIPAA-compliant infrastructure you can trust with sensitive health information.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="section" id="how" style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+    <div class="section-label">The Process</div>
+    <div class="section-title">How It Works</div>
+    <div class="section-sub">From emergency to donation in four simple steps.</div>
+    <div class="steps-grid">
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <h4>Register</h4>
+        <p>Sign up as a donor or patient. Complete your health profile and blood type verification.</p>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <h4>Request or Activate</h4>
+        <p>Patients post urgent requests. Donors set their availability status with one tap.</p>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <h4>Smart Match</h4>
+        <p>Our algorithm finds compatible donors within range, considering urgency and travel time.</p>
+      </div>
+      <div class="step-item">
+        <div class="step-num">4</div>
+        <h4>Save a Life</h4>
+        <p>Donor gets notified, confirms, and heads to the hospital. Life saved, mission complete.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Banner -->
+  <section class="section" style="text-align:center" id="about">
+    <div class="section-title">Ready to Make a<br><span style="color:var(--red)">Difference?</span></div>
+    <div class="section-sub" style="margin:0 auto 40px">Join thousands of heroes who have already saved lives. Registration takes less than 2 minutes.</div>
+    <div style="display:flex;gap:16px;justify-content:center">
+      <button class="btn btn-primary btn-large" onclick="openAuth('register')">
+        <i class="fas fa-user-plus"></i> Register as Donor
+      </button>
+      <button class="btn btn-ghost btn-large" onclick="openAuth('register')">
+        I Need Blood <i class="fas fa-tint"></i>
+      </button>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div>
+      <div class="logo" style="margin-bottom:8px">
+        <div class="logo-icon" style="width:28px;height:28px;font-size:14px">🩸</div>
+        BloodLink
+      </div>
+      <p>Saving lives, one match at a time.</p>
+    </div>
+    <div class="footer-links">
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+      <a href="#">Contact</a>
+    </div>
+  </footer>
+
+  <!-- Auth Modal -->
+  <div class="modal-overlay" id="authModal">
+    <div class="modal" style="position:relative">
+      <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+      <div class="modal-header">
+        <h2 id="modalTitle">Welcome to BloodLink</h2>
+        <p id="modalSub">Create an account to get started</p>
+      </div>
+      <div class="modal-body">
+        <div class="auth-tabs">
+          <div class="auth-tab active" id="tab-register" onclick="switchTab('register')">Register</div>
+          <div class="auth-tab" id="tab-login" onclick="switchTab('login')">Sign In</div>
+        </div>
+
+        <div id="msg-box" class="msg-box"></div>
+
+        <!-- Register Form -->
+        <div id="form-register">
+          <div class="form-group">
+            <label>I am a</label>
+            <div class="role-selector">
+              <label class="role-option">
+                <input type="radio" name="role" value="donor" checked>
+                <div class="role-icon">🤝</div>
+                <div class="role-name">Donor</div>
+                <div class="role-desc">I want to donate blood</div>
+              </label>
+              <label class="role-option">
+                <input type="radio" name="role" value="requester">
+                <div class="role-icon">🏥</div>
+                <div class="role-name">Requester</div>
+                <div class="role-desc">I need blood urgently</div>
+              </label>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Username</label>
+              <input class="form-control" id="reg-user" placeholder="johndoe" autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label>Password</label>
+              <input class="form-control" type="password" id="reg-pass" placeholder="••••••••">
+            </div>
+          </div>
+          <div class="form-group" id="blood-group-section">
+            <label>Blood Type</label>
+            <div class="blood-grid" id="bloodGrid">
+              <button type="button" class="blood-btn" onclick="selectBlood(this,'A+')">A+</button>
+              <button type="button" class="blood-btn" onclick="selectBlood(this,'A-')">A-</button>
+              <button type="button" class="blood-btn" onclick="selectBlood(this,'B+')">B+</button>
+              <button type="button" class="blood-btn" onclick="selectBlood(this,'B-')">B-</button>
+              <button type="button" class="blood-btn" onclick="selectBlood(this,'AB+')">AB+</button>
+              <button type="button" class="blood-btn" onclick="selectBlood(this,'AB-')">AB-</button>
+              <button type="button" class="blood-btn" onclick="selectBlood(this,'O+')">O+</button>
+              <button type="button" class="blood-btn" onclick="selectBlood(this,'O-')">O-</button>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-full" onclick="doRegister()" id="reg-btn">
+            <span>Create Account</span>
+            <div class="spinner" id="reg-spin"></div>
+          </button>
+        </div>
+
+        <!-- Login Form -->
+        <div id="form-login" style="display:none">
+          <div class="form-group">
+            <label>Username</label>
+            <input class="form-control" id="login-user" placeholder="johndoe">
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input class="form-control" type="password" id="login-pass" placeholder="••••••••">
+          </div>
+          <button class="btn btn-primary btn-full" onclick="doLogin()" id="login-btn">
+            <span>Sign In</span>
+            <div class="spinner" id="login-spin"></div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Particles
+    const container = document.getElementById('particles');
+    for (let i = 0; i < 20; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.style.cssText = `left:${Math.random()*100}%;--dur:${6+Math.random()*10}s;--delay:${Math.random()*8}s;width:${1+Math.random()*3}px;height:${1+Math.random()*3}px`;
+      container.appendChild(p);
+    }
+
+    // Counter animation
+    const counters = document.querySelectorAll('.stat-num[data-target]');
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          const el = e.target;
+          const target = parseInt(el.dataset.target);
+          let current = 0;
+          const step = target / 60;
+          const timer = setInterval(() => {
+            current = Math.min(current + step, target);
+            el.textContent = Math.floor(current).toLocaleString();
+            if (current >= target) clearInterval(timer);
+          }, 20);
+          observer.unobserve(el);
+        }
+      });
+    });
+    counters.forEach(c => observer.observe(c));
+
+    // Modal
+    let currentTab = 'register';
+    let selectedBlood = '';
+
+    function openAuth(tab) {
+      document.getElementById('authModal').classList.add('active');
+      switchTab(tab);
+    }
+    function closeModal() {
+      document.getElementById('authModal').classList.remove('active');
+    }
+    document.getElementById('authModal').addEventListener('click', e => {
+      if (e.target === document.getElementById('authModal')) closeModal();
+    });
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.getElementById('form-register').style.display = tab === 'register' ? 'block' : 'none';
+      document.getElementById('form-login').style.display = tab === 'login' ? 'block' : 'none';
+      document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+      document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+      document.getElementById('modalTitle').textContent = tab === 'register' ? 'Create Account' : 'Welcome Back';
+      document.getElementById('modalSub').textContent = tab === 'register' ? 'Join the BloodLink network today' : 'Sign in to your account';
+      clearMsg();
+    }
+
+    function showMsg(text, type) {
+      const box = document.getElementById('msg-box');
+      box.textContent = text;
+      box.className = 'msg-box ' + type;
+    }
+    function clearMsg() {
+      const box = document.getElementById('msg-box');
+      box.className = 'msg-box';
+    }
+
+    function selectBlood(btn, type) {
+      document.querySelectorAll('.blood-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedBlood = type;
+    }
+
+    // Watch role change
+    document.querySelectorAll('input[name="role"]').forEach(r => {
+      r.addEventListener('change', () => {
+        document.getElementById('blood-group-section').style.display = r.value === 'donor' ? 'block' : 'none';
+      });
+    });
+
+    async function doRegister() {
+      const username = document.getElementById('reg-user').value.trim();
+      const password = document.getElementById('reg-pass').value;
+      const role = document.querySelector('input[name="role"]:checked').value;
+      if (!username || !password) return showMsg('Please fill all fields', 'error');
+      if (role === 'donor' && !selectedBlood) return showMsg('Please select your blood type', 'error');
+
+      const btn = document.getElementById('reg-btn');
+      const spin = document.getElementById('reg-spin');
+      btn.querySelector('span').textContent = 'Creating...';
+      spin.style.display = 'block';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password, role, bloodType: role === 'donor' ? selectedBlood : null })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showMsg('✓ Account created! Signing you in...', 'success');
+          setTimeout(() => { switchTab('login'); document.getElementById('login-user').value = username; }, 1500);
+        } else {
+          showMsg(data.message, 'error');
+        }
+      } catch (e) {
+        showMsg('Connection error. Please try again.', 'error');
+      }
+
+      btn.querySelector('span').textContent = 'Create Account';
+      spin.style.display = 'none';
+      btn.disabled = false;
+    }
+
+    async function doLogin() {
+      const username = document.getElementById('login-user').value.trim();
+      const password = document.getElementById('login-pass').value;
+      if (!username || !password) return showMsg('Please fill all fields', 'error');
+
+      const btn = document.getElementById('login-btn');
+      const spin = document.getElementById('login-spin');
+      btn.querySelector('span').textContent = 'Signing In...';
+      spin.style.display = 'block';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (res.ok && data.token) {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('role', data.role);
+          showMsg('✓ Welcome back!', 'success');
+          setTimeout(() => window.location.href = '/dashboard.html', 800);
+        } else {
+          showMsg(data.message || 'Invalid credentials', 'error');
+        }
+      } catch (e) {
+        showMsg('Connection error. Please try again.', 'error');
+      }
+
+      btn.querySelector('span').textContent = 'Sign In';
+      spin.style.display = 'none';
+      btn.disabled = false;
+    }
+
+    // Enter key support
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        if (document.getElementById('authModal').classList.contains('active')) {
+          if (currentTab === 'register') doRegister();
+          else doLogin();
+        }
+      }
+    });
+  </script>
 </body>
 </html>
