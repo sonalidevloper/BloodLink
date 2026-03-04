@@ -1,0 +1,6 @@
+body { font-family: Arial; background: #f0f2f5; margin:0; padding:20px; }
+.container { max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+input, select, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; }
+button { background: #d32f2f; color: white; font-size: 16px; cursor: pointer; }
+button:hover { background: #b71c1c; }
+#msg { margin-top: 15px; font-weight: bold; }
