@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BloodLink – Donation Analytics</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  <style>
+    :root{
+      --red:#e81c1c;--red-glow:rgba(232,28,28,0.25);--red-dim:rgba(232,28,28,0.1);
+      --bg:#0a0a0b;--bg2:#111114;--bg3:#18181d;
+      --surface:#1e1e25;--surface2:#252530;
+      --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+      --text:#f0f0f4;--text-muted:#7a7a8c;--text-dim:#3a3a50;
+      --green:#22c55e;--green-dim:rgba(34,197,94,0.1);
+      --yellow:#f59e0b;--yellow-dim:rgba(245,158,11,0.1);
+      --blue:#3b82f6;--blue-dim:rgba(59,130,246,0.1);
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+    nav{padding:16px 36px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:rgba(10,10,11,0.95);backdrop-filter:blur(20px);position:sticky;top:0;z-index:50;}
+    .logo{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text);}
+    .logo-icon{width:34px;height:34px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 0 16px var(--red-glow);}
+    .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all 0.2s;}
+    .btn-primary{background:var(--red);color:#fff;}
+    .btn-primary:hover{background:#ff2424;box-shadow:0 4px 16px var(--red-glow);}
+    .btn-ghost{background:transparent;color:var(--text-muted);border:1px solid var(--border);}
+    .btn-ghost:hover{color:var(--text);border-color:var(--border2);background:var(--surface);}
+    .btn-sm{padding:6px 12px;font-size:12px;}
+
+    .page{max-width:1200px;margin:0 auto;padding:36px 24px;}
+    .page-hd{margin-bottom:32px;}
+    .page-label{font-size:11px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--red);margin-bottom:10px;}
+    .page-title{font-family:'Syne',sans-serif;font-size:clamp(28px,4vw,42px);font-weight:800;margin-bottom:10px;}
+    .page-sub{color:var(--text-muted);font-size:15px;line-height:1.7;}
+
+    /* KPI row */
+    .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+    .kpi{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;position:relative;overflow:hidden;transition:transform 0.2s;}
+    .kpi:hover{transform:translateY(-2px);}
+    .kpi::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--kcolor,var(--red));}
+    .kpi-icon{font-size:22px;margin-bottom:12px;display:block;}
+    .kpi-val{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;margin-bottom:4px;}
+    .kpi-label{font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;}
+    .kpi-change{position:absolute;top:16px;right:16px;font-size:11px;padding:3px 8px;border-radius:100px;}
+    .kpi-change.up{background:var(--green-dim);color:var(--green);}
+
+    /* eligibility card */
+    .eligibility-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:24px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;}
+    .elig-ring{position:relative;width:100px;height:100px;flex-shrink:0;}
+    .elig-ring canvas{position:absolute;top:0;left:0;}
+    .elig-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+    .elig-pct{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;}
+    .elig-sub{font-size:9px;color:var(--text-muted);text-transform:uppercase;}
+    .elig-info{flex:1;}
+    .elig-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:6px;}
+    .elig-desc{font-size:13px;color:var(--text-muted);line-height:1.7;margin-bottom:14px;}
+    .elig-dates{display:flex;gap:20px;flex-wrap:wrap;}
+    .elig-date-item{font-size:12px;}
+    .elig-date-label{color:var(--text-dim);margin-bottom:2px;}
+    .elig-date-val{font-weight:600;}
+
+    /* progress bar */
+    .progress-bar{height:8px;background:var(--bg3);border-radius:4px;overflow:hidden;margin-top:10px;}
+    .progress-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--red),#ff6b6b);transition:width 1s ease;}
+
+    /* chart cards */
+    .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+    .chart-hd{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+    .chart-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;}
+    .chart-sub{font-size:11px;color:var(--text-muted);margin-top:2px;}
+    .chart-body{padding:20px;}
+
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;}
+    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:20px;}
+
+    /* health metrics */
+    .health-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+    .health-item{padding:16px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;text-align:center;}
+    .health-icon{font-size:24px;margin-bottom:8px;display:block;}
+    .health-val{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:4px;}
+    .health-label{font-size:11px;color:var(--text-muted);}
+    .health-note{font-size:10px;margin-top:6px;padding:3px 8px;border-radius:100px;display:inline-block;}
+
+    /* donation history timeline */
+    .timeline{display:flex;flex-direction:column;gap:0;}
+    .tl-item{display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid var(--border);}
+    .tl-item:last-child{border-bottom:none;}
+    .tl-dot{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;margin-top:2px;}
+    .tl-dot.done{background:var(--green-dim);border:2px solid rgba(34,197,94,0.3);}
+    .tl-dot.next{background:var(--red-dim);border:2px solid rgba(232,28,28,0.3);}
+    .tl-content{flex:1;}
+    .tl-title{font-size:13px;font-weight:600;margin-bottom:3px;}
+    .tl-sub{font-size:12px;color:var(--text-muted);}
+    .tl-date{font-size:11px;color:var(--text-dim);margin-left:auto;white-space:nowrap;}
+
+    /* impact card */
+    .impact-card{background:linear-gradient(135deg,rgba(232,28,28,0.15),rgba(168,0,0,0.05));border:1px solid rgba(232,28,28,0.25);border-radius:14px;padding:24px;text-align:center;margin-bottom:20px;}
+    .impact-num{font-family:'Syne',sans-serif;font-size:56px;font-weight:800;color:var(--red);line-height:1;}
+    .impact-label{font-size:15px;color:var(--text-muted);margin-top:8px;}
+    .impact-sub{font-size:13px;color:var(--text-dim);margin-top:4px;}
+
+    /* tab filter */
+    .tab-filter{display:flex;gap:6px;margin-bottom:16px;}
+    .tab-btn{padding:6px 14px;border-radius:100px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text-muted);transition:all 0.2s;}
+    .tab-btn.active{background:var(--red-dim);color:var(--red);border-color:rgba(232,28,28,0.3);}
+
+    @media(max-width:768px){
+      .kpi-row,.grid-2,.grid-3,.health-grid{grid-template-columns:1fr 1fr;}
+      nav{padding:14px 20px;}
+      .page{padding:24px 16px;}
+      .eligibility-card{flex-direction:column;}
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="/"><div class="logo-icon">🩸</div>BloodLink</a>
+  <div style="display:flex;gap:10px">
+    <button class="btn btn-ghost btn-sm" onclick="window.location.href='/dashboard.html'"><i class="fas fa-arrow-left"></i> Dashboard</button>
+    <button class="btn btn-primary btn-sm" onclick="exportReport()"><i class="fas fa-download"></i> Export Report</button>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-hd">
+    <div class="page-label">Analytics & Insights</div>
+    <div class="page-title">Donation Analytics</div>
+    <div class="page-sub">Track your impact, health metrics, and donation history. Know exactly when you're eligible to donate again.</div>
+  </div>
+
+  <!-- KPI Row -->
+  <div class="kpi-row">
+    <div class="kpi" style="--kcolor:var(--red)">
+      <div class="kpi-change up">↑ 25%</div>
+      <span class="kpi-icon">🩸</span>
+      <div class="kpi-val" id="kpi-total">0</div>
+      <div class="kpi-label">Total Donations</div>
+    </div>
+    <div class="kpi" style="--kcolor:var(--green)">
+      <div class="kpi-change up">↑ 3</div>
+      <span class="kpi-icon">❤️</span>
+      <div class="kpi-val" id="kpi-lives">0</div>
+      <div class="kpi-label">Lives Impacted</div>
+    </div>
+    <div class="kpi" style="--kcolor:var(--blue)">
+      <span class="kpi-icon">📅</span>
+      <div class="kpi-val" id="kpi-days">—</div>
+      <div class="kpi-label">Days Since Last</div>
+    </div>
+    <div class="kpi" style="--kcolor:var(--yellow)">
+      <span class="kpi-icon">⏳</span>
+      <div class="kpi-val" id="kpi-next">—</div>
+      <div class="kpi-label">Days Until Eligible</div>
+    </div>
+  </div>
+
+  <!-- Eligibility Card -->
+  <div class="eligibility-card">
+    <div class="elig-ring">
+      <canvas id="eligRing" width="100" height="100"></canvas>
+      <div class="elig-center">
+        <div class="elig-pct" id="elig-pct">—</div>
+        <div class="elig-sub">Recovery</div>
+      </div>
+    </div>
+    <div class="elig-info">
+      <div class="elig-title" id="elig-title">Checking eligibility...</div>
+      <div class="elig-desc" id="elig-desc">Donors must wait 90 days between whole blood donations to allow full recovery of red blood cells.</div>
+      <div class="progress-bar"><div class="progress-fill" id="elig-progress" style="width:0%"></div></div>
+      <div class="elig-dates" style="margin-top:12px">
+        <div class="elig-date-item"><div class="elig-date-label">Last Donation</div><div class="elig-date-val" id="last-don">—</div></div>
+        <div class="elig-date-item"><div class="elig-date-label">Next Eligible</div><div class="elig-date-val" id="next-elig">—</div></div>
+        <div class="elig-date-item"><div class="elig-date-label">Blood Type</div><div class="elig-date-val" id="blood-type-val" style="color:var(--red)">—</div></div>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="donate-btn" onclick="recordDonation()" style="align-self:flex-start">
+      <i class="fas fa-heart"></i> Record Donation
+    </button>
+  </div>
+
+  <!-- Charts Row 1 -->
+  <div class="grid-2" style="margin-bottom:20px">
+    <div class="chart-card">
+      <div class="chart-hd">
+        <div><div class="chart-title">Donation History</div><div class="chart-sub">Monthly donations over time</div></div>
+        <div class="tab-filter">
+          <button class="tab-btn active" onclick="setChartPeriod('6m',this)">6M</button>
+          <button class="tab-btn" onclick="setChartPeriod('1y',this)">1Y</button>
+          <button class="tab-btn" onclick="setChartPeriod('all',this)">All</button>
+        </div>
+      </div>
+      <div class="chart-body"><canvas id="donationChart" height="200"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-hd">
+        <div><div class="chart-title">Blood Type Demand</div><div class="chart-sub">Network-wide request distribution</div></div>
+      </div>
+      <div class="chart-body"><canvas id="bloodTypeChart" height="200"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Charts Row 2 -->
+  <div class="grid-2" style="margin-bottom:20px">
+    <div class="chart-card">
+      <div class="chart-hd">
+        <div><div class="chart-title">Response Time Trend</div><div class="chart-sub">Minutes to match donor (weekly avg)</div></div>
+      </div>
+      <div class="chart-body"><canvas id="responseChart" height="180"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-hd">
+        <div><div class="chart-title">Request Urgency Breakdown</div><div class="chart-sub">This month</div></div>
+      </div>
+      <div class="chart-body" style="display:flex;align-items:center;justify-content:center">
+        <canvas id="urgencyChart" height="200" width="200"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Health Metrics + Impact -->
+  <div class="grid-2" style="margin-bottom:20px">
+    <div class="chart-card">
+      <div class="chart-hd"><div class="chart-title">Health Metrics</div><div class="chart-sub">Self-reported at last donation</div></div>
+      <div class="chart-body">
+        <div class="health-grid">
+          <div class="health-item">
+            <span class="health-icon">⚖️</span>
+            <div class="health-val" id="hm-weight">—</div>
+            <div class="health-label">Weight (kg)</div>
+            <div class="health-note" style="background:var(--green-dim);color:var(--green)">Healthy</div>
+          </div>
+          <div class="health-item">
+            <span class="health-icon">🩺</span>
+            <div class="health-val">Normal</div>
+            <div class="health-label">Blood Pressure</div>
+            <div class="health-note" style="background:var(--green-dim);color:var(--green)">✓ OK</div>
+          </div>
+          <div class="health-item">
+            <span class="health-icon">💉</span>
+            <div class="health-val">13.5</div>
+            <div class="health-label">Hemoglobin</div>
+            <div class="health-note" style="background:var(--green-dim);color:var(--green)">✓ OK</div>
+          </div>
+          <div class="health-item">
+            <span class="health-icon">🫀</span>
+            <div class="health-val">72</div>
+            <div class="health-label">Pulse (bpm)</div>
+            <div class="health-note" style="background:var(--green-dim);color:var(--green)">Normal</div>
+          </div>
+          <div class="health-item">
+            <span class="health-icon">🌡️</span>
+            <div class="health-val">98.6°</div>
+            <div class="health-label">Temperature</div>
+            <div class="health-note" style="background:var(--green-dim);color:var(--green)">Normal</div>
+          </div>
+          <div class="health-item">
+            <span class="health-icon">🔬</span>
+            <div class="health-val" id="blood-type-hm">—</div>
+            <div class="health-label">Blood Type</div>
+            <div class="health-note" style="background:var(--red-dim);color:var(--red)">Verified</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-hd"><div class="chart-title">Your Impact</div><div class="chart-sub">Lives changed by your donations</div></div>
+      <div class="chart-body">
+        <div class="impact-card">
+          <div class="impact-num" id="impact-num">0</div>
+          <div class="impact-label">Lives Potentially Saved</div>
+          <div class="impact-sub">Each donation can save up to 3 lives</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div style="padding:14px;background:var(--bg3);border-radius:10px;text-align:center">
+            <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--red)" id="imp-ml">0ml</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Blood Donated</div>
+          </div>
+          <div style="padding:14px;background:var(--bg3);border-radius:10px;text-align:center">
+            <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--green)" id="imp-streak">0</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Donation Streak</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Timeline -->
+  <div class="chart-card">
+    <div class="chart-hd"><div class="chart-title">Donation Timeline</div><div class="chart-sub">Your complete donation history</div></div>
+    <div class="chart-body">
+      <div class="timeline" id="timeline"><!-- filled by JS --></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const token = localStorage.getItem('token');
+let donorData = null;
+let eligRingChart = null;
+
+// Chart defaults
+Chart.defaults.color = '#7a7a8c';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+Chart.defaults.font.family = "'DM Sans', sans-serif";
+
+// ── LOAD DATA ──
+async function loadData() {
+  try {
+    const [meRes, eligRes] = await Promise.all([
+      fetch('/api/me', { headers: { Authorization: `Bearer ${token}` } }),
+      fetch('/api/eligibility', { headers: { Authorization: `Bearer ${token}` } })
+    ]);
+    const me = await meRes.json();
+    const elig = await eligRes.json();
+
+    donorData = me.donor;
+    renderKPIs(elig, me.donor);
+    renderEligibility(elig, me.donor);
+    renderTimeline(me.donor);
+  } catch(e) {
+    // Demo mode
+    const demo = { eligible: false, daysLeft: 45, totalDonations: 3, lastDonation: new Date(Date.now() - 45*24*60*60*1000), nextEligible: new Date(Date.now() + 45*24*60*60*1000) };
+    const demoDonor = { bloodType: 'O+', donationsCount: 3 };
+    renderKPIs(demo, demoDonor);
+    renderEligibility(demo, demoDonor);
+    renderTimeline(demoDonor);
+  }
+}
+
+function renderKPIs(elig, donor) {
+  const total = donor?.donationsCount || 0;
+  const daysSince = elig.lastDonation ? Math.floor((Date.now() - new Date(elig.lastDonation)) / (24*60*60*1000)) : '—';
+
+  animateNum('kpi-total', total);
+  animateNum('kpi-lives', total * 3);
+  document.getElementById('kpi-days').textContent = daysSince;
+  document.getElementById('kpi-next').textContent = elig.eligible ? '✅' : elig.daysLeft;
+
+  document.getElementById('impact-num').textContent = total * 3;
+  document.getElementById('imp-ml').textContent = (total * 450) + 'ml';
+  document.getElementById('imp-streak').textContent = total;
+
+  if (donor?.bloodType) {
+    document.getElementById('blood-type-val').textContent = donor.bloodType;
+    document.getElementById('blood-type-hm').textContent = donor.bloodType;
+  }
+  const w = donor?.weight || '68';
+  document.getElementById('hm-weight').textContent = w;
+}
+
+function renderEligibility(elig, donor) {
+  const pct = elig.eligible ? 100 : Math.round((1 - elig.daysLeft / 90) * 100);
+  document.getElementById('elig-pct').textContent = pct + '%';
+  document.getElementById('elig-progress').style.width = pct + '%';
+
+  if (elig.eligible) {
+    document.getElementById('elig-title').textContent = '✅ You are eligible to donate!';
+    document.getElementById('elig-desc').textContent = 'Your body has fully recovered. You can safely donate blood again. Head to a nearby blood bank or respond to an urgent request.';
+  } else {
+    document.getElementById('elig-title').textContent = `⏳ ${elig.daysLeft} days until your next donation`;
+    document.getElementById('elig-desc').textContent = `You donated ${90 - elig.daysLeft} days ago. Your body is still recovering. Rest, hydrate, and eat iron-rich foods.`;
+  }
+
+  document.getElementById('last-don').textContent = elig.lastDonation ? new Date(elig.lastDonation).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'}) : 'No donations yet';
+  document.getElementById('next-elig').textContent = elig.nextEligible ? new Date(elig.nextEligible).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'}) : 'Eligible now';
+
+  // Ring chart
+  if (eligRingChart) eligRingChart.destroy();
+  const ctx = document.getElementById('eligRing').getContext('2d');
+  eligRingChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      datasets: [{ data: [pct, 100-pct], backgroundColor: [elig.eligible ? '#22c55e' : '#e81c1c', 'rgba(255,255,255,0.05)'], borderWidth: 0, cutout: '80%' }]
+    },
+    options: { plugins: { legend: { display: false } }, animation: { duration: 1000 } }
+  });
+}
+
+function renderTimeline(donor) {
+  const total = donor?.donationsCount || 0;
+  const donations = [];
+  for (let i = 0; i < Math.min(total, 5); i++) {
+    const date = new Date(Date.now() - (i+1) * 95 * 24 * 60 * 60 * 1000);
+    donations.push({ date, hospital: ['City General', 'Apollo Blood Bank', 'Red Cross'][i%3], units: 1, status: 'done' });
+  }
+  if (!donations.length) {
+    document.getElementById('timeline').innerHTML = `<div style="text-align:center;padding:32px;color:var(--text-dim)"><i class="fas fa-heart" style="font-size:28px;display:block;margin-bottom:10px;opacity:0.2"></i>No donations yet. Be a hero — donate your first blood!</div>`;
+    return;
+  }
+  const nextDate = new Date(Date.now() + 45*24*60*60*1000);
+  document.getElementById('timeline').innerHTML = [
+    { date: nextDate, hospital: 'Next Donation', units: 0, status: 'next' },
+    ...donations
+  ].map(d => `
+    <div class="tl-item">
+      <div class="tl-dot ${d.status}">${d.status==='done'?'🩸':'⏳'}</div>
+      <div class="tl-content">
+        <div class="tl-title">${d.status==='next'?'Upcoming Donation':'Whole Blood Donation'}</div>
+        <div class="tl-sub">${d.hospital}${d.units ? ' · 450ml donated' : ' · Estimated date'}</div>
+      </div>
+      <div class="tl-date">${d.date.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}</div>
+    </div>
+  `).join('');
+}
+
+// ── CHARTS ──
+function initCharts() {
+  // Donation history
+  const months = ['Aug','Sep','Oct','Nov','Dec','Jan'];
+  new Chart(document.getElementById('donationChart'), {
+    type: 'bar',
+    data: {
+      labels: months,
+      datasets: [{
+        label: 'Donations',
+        data: [1, 0, 1, 0, 0, 1],
+        backgroundColor: 'rgba(232,28,28,0.6)',
+        borderColor: '#e81c1c',
+        borderWidth: 1,
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, max: 2, ticks: { stepSize: 1, color: '#7a7a8c' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+        x: { ticks: { color: '#7a7a8c' }, grid: { display: false } }
+      }
+    }
+  });
+
+  // Blood type demand
+  new Chart(document.getElementById('bloodTypeChart'), {
+    type: 'bar',
+    data: {
+      labels: ['O+', 'A+', 'B+', 'AB+', 'O-', 'A-', 'B-', 'AB-'],
+      datasets: [{
+        label: 'Requests',
+        data: [45, 32, 28, 15, 22, 18, 12, 8],
+        backgroundColor: ['rgba(232,28,28,0.8)','rgba(232,28,28,0.65)','rgba(232,28,28,0.5)','rgba(232,28,28,0.4)','rgba(232,28,28,0.35)','rgba(232,28,28,0.3)','rgba(232,28,28,0.25)','rgba(232,28,28,0.2)'],
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      responsive: true, indexAxis: 'y',
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#7a7a8c' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+        y: { ticks: { color: '#7a7a8c' }, grid: { display: false } }
+      }
+    }
+  });
+
+  // Response time
+  new Chart(document.getElementById('responseChart'), {
+    type: 'line',
+    data: {
+      labels: ['W1','W2','W3','W4','W5','W6','W7','W8'],
+      datasets: [{
+        label: 'Avg Response (min)',
+        data: [18, 15, 22, 12, 9, 14, 8, 6],
+        borderColor: '#22c55e',
+        backgroundColor: 'rgba(34,197,94,0.08)',
+        borderWidth: 2,
+        pointBackgroundColor: '#22c55e',
+        pointRadius: 4,
+        tension: 0.4,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { color: '#7a7a8c' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+        x: { ticks: { color: '#7a7a8c' }, grid: { display: false } }
+      }
+    }
+  });
+
+  // Urgency donut
+  new Chart(document.getElementById('urgencyChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['High', 'Medium', 'Low'],
+      datasets: [{
+        data: [35, 45, 20],
+        backgroundColor: ['#e81c1c', '#f59e0b', '#22c55e'],
+        borderWidth: 0,
+        cutout: '70%'
+      }]
+    },
+    options: {
+      responsive: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#7a7a8c', padding: 16, font: { size: 12 } } }
+      }
+    }
+  });
+}
+
+function setChartPeriod(period, el) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function animateNum(id, target) {
+  let cur = 0;
+  const el = document.getElementById(id);
+  const step = Math.max(1, Math.floor(target / 30));
+  const timer = setInterval(() => {
+    cur = Math.min(cur + step, target);
+    el.textContent = cur;
+    if (cur >= target) clearInterval(timer);
+  }, 30);
+}
+
+async function recordDonation() {
+  try {
+    const res = await fetch('/api/record-donation', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({})
+    });
+    const data = await res.json();
+    if (res.ok) {
+      alert(`✅ ${data.message}\nNext eligible: ${new Date(data.nextEligible).toLocaleDateString()}`);
+      loadData();
+    }
+  } catch(e) {
+    alert('Demo mode: Donation would be recorded here');
+  }
+}
+
+function exportReport() {
+  const data = `BloodLink Donation Report\n${'='.repeat(40)}\nGenerated: ${new Date().toLocaleString()}\n\nDonor Analytics Summary\n- Total Donations: ${document.getElementById('kpi-total').textContent}\n- Lives Impacted: ${document.getElementById('kpi-lives').textContent}\n- Blood Type: ${document.getElementById('blood-type-val').textContent}\n- Next Eligible: ${document.getElementById('next-elig').textContent}\n`;
+  const blob = new Blob([data], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'bloodlink-report.txt';
+  a.click();
+}
+
+loadData();
+initCharts();
+</script>
+</body>
+</html>
