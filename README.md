@@ -105,16 +105,12 @@ If you'd like to improve BloodLink:
 
 ---
 
-⭐ Support
-If you find this project meaningful, please consider giving it a star on GitHub — it helps visibility and encourages contributions.
-
-
-
 ## ❤️ Acknowledgement
 
 Built with the vision of making blood donation faster, simpler, and accessible in emergencies.  
 **Every second matters. Every donor counts.**
 
+---
 
 ⭐ Support
 If you find this project meaningful, please consider giving it a star on GitHub — it helps visibility and encourages contributions.
