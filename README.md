@@ -105,11 +105,6 @@ If you'd like to improve BloodLink:
 
 ---
 
-## 📜 License
-
-Add your preferred license here (e.g., MIT).
-
----
 
 ## ❤️ Acknowledgement
 
