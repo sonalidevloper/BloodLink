@@ -105,9 +105,12 @@ If you'd like to improve BloodLink:
 
 ---
 
-## ❤️ Acknowledgement
+## 🙏 Acknowledgement
 
-Built with the vision of making blood donation faster, simpler, and accessible in emergencies.  
+❤️ To all blood donors who save lives.
+🏥 To emergency responders and healthcare workers.
+🌍 To communities building technology for social good.
+  
 **Every second matters. Every donor counts.**
 
 ---
