@@ -111,7 +111,7 @@ If you'd like to improve BloodLink:
 🏥 To emergency responders and healthcare workers.
 🌍 To communities building technology for social good.
   
-**Every second matters. Every donor counts.**
+**Every second matters. Every donor counts.** 
 
 ---
 
