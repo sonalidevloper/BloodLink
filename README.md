@@ -1,7 +1,7 @@
 # 🩸BloodLink — Real-Time Blood Donation Platform
 
 > **Real-time blood donation app** that connects **donors** and **patients** instantly using **location** and **blood type**.  
-> ⚡ GPS-based matching • 🧭 Simple UI • ❤️ Fast, lifesaving support
+> ⚡GPS-based matching • 🧭 Simple UI • ❤️ Fast, lifesaving support
 
 ---
 
